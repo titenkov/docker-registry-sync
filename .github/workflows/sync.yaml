@@ -1,0 +1,35 @@
+# This is a basic workflow to help you get started with Actions
+name: image-sync
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 14 * * 1'
+
+env:
+  IMAGE_SYNCER_VERSION: v1.3.1
+  IO_GITHUB_REGISTRY_USERNAME: ${{ secrets.IO_GITHUB_REGISTRY_USERNAME }}
+  IO_GITHUB_REGISTRY_PASSWORD: ${{ secrets.IO_GITHUB_REGISTRY_PASSWORD }}
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: install image-sync tool
+        run: |
+          wget https://github.com/AliyunContainerService/image-syncer/releases/download/${IMAGE_SYNCER_VERSION}/image-syncer-${IMAGE_SYNCER_VERSION}-linux-amd64.tar.gz
+          tar -zxf image-syncer-${IMAGE_SYNCER_VERSION}-linux-amd64.tar.gz
+        
+      - name: sync images
+        run: |
+          ./image-syncer --proc=6 --auth=./auth.json --images=./images.json --retries=1
